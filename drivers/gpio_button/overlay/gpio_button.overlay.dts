@@ -1,0 +1,61 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+
+/ {
+	compatible = "xunlong,orangepi-5-plus", "rockchip,rk3588";
+
+	/*
+	 * Physical header mapping (Orange Pi 5 Plus):
+	 *  - Pin 18: GPIO3_B6  (button)
+	 *  - Pin 22: GPIO1_A2  (LED)
+	 *
+	 * Linux gpiod offsets (for sanity):
+	 *  - GPIO3_B6 = (bank B=8..15) => 8+6 = 14  => gpiochip3 line 14
+	 *  - GPIO1_A2 = (bank A=0..7)  => 2         => gpiochip1 line 2
+	 */
+
+	fragment@0 {
+		target = <&pinctrl>;
+		__overlay__ {
+			gpio_button_pins: gpio-button-pins {
+				btn_pin: btn-pin {
+					rockchip,pins = <3 RK_PB6 RK_FUNC_GPIO &pcfg_pull_up>;
+				};
+				led_pin: led-pin {
+					rockchip,pins = <1 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			gpio_button: gpio-button {
+				/*
+				 * Keep your driver's binding shape:
+				 *   gpiod_get(dev, "button", ...)
+				 *   gpiod_get(dev, "led", ...)
+				 */
+				compatible = "custom,gpio-button";
+				status = "okay";
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&btn_pin &led_pin>;
+
+				/*
+				 * Button is wired with pull-up and pressed drives it low.
+				 * If your driver treats "pressed == 0", keep ACTIVE_HIGH here
+				 * so gpiod_get_value() returns the raw logical level.
+				 */
+				button-gpios = <&gpio3 RK_PB6 GPIO_ACTIVE_HIGH>;
+
+				/* LED active high */
+				led-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;
+			};
+		};
+	};
+};

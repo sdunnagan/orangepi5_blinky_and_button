@@ -1,0 +1,21 @@
+[Unit]
+Description=GPIO Button LED Control (custom gpio_button driver)
+After=systemd-modules-load.service
+Wants=systemd-modules-load.service
+
+# Make sure the device node exists before starting
+After=dev-gpio_button.device
+Wants=dev-gpio_button.device
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/button
+Restart=on-failure
+RestartSec=1
+
+# If button needs root (likely), run as root.
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

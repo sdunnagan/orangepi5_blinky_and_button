@@ -1,0 +1,19 @@
+[Unit]
+Description=Blinky LED (libgpiod)
+After=multi-user.target
+After=dev-gpiochip1.device
+Wants=dev-gpiochip1.device
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/blinky -D -c gpiochip1 -l 1 -i 250
+Restart=always
+RestartSec=1
+
+# blinky can probably run unprivileged if /dev/gpiochip* perms allow it
+# If you're in group gpio and udev perms are correct, you can change User=sdunnaga.
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
