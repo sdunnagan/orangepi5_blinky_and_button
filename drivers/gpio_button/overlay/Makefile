@@ -15,19 +15,15 @@
 # Kernel source tree (needed so cpp can resolve #include <dt-bindings/...>)
 KDIR ?= $(KERNEL_SRC_DIR)
 
-# Tools
 CPP ?= cpp
 DTC ?= dtc
 
-# Platform (for include path convenience)
 ARCH       ?= arm64
 DTS_VENDOR ?= rockchip
 
-# Inputs/outputs
-OVERLAY_SRC := gpio_button.overlay.dts
-DTBO        := $(CURDIR)/gpio_button.overlay.dtbo
+# Build both overlays
+DTBOS := gpio_button.overlay.dtbo i2c_enable.overlay.dtbo
 
-# cpp include paths so dt-bindings and dtsi includes resolve
 DTS_CPPFLAGS ?= -nostdinc -undef -D__DTS__ -x assembler-with-cpp \
 	-I"$(KDIR)/include" \
 	-I"$(KDIR)/arch/$(ARCH)/boot/dts" \
@@ -35,12 +31,12 @@ DTS_CPPFLAGS ?= -nostdinc -undef -D__DTS__ -x assembler-with-cpp \
 
 .PHONY: all help clean
 
-all: $(DTBO)
+all: $(DTBOS)
 
 help:
 	@echo "Targets:"
-	@echo "  all (default) - build $(DTBO)"
-	@echo "  clean         - remove $(DTBO)"
+	@echo "  all (default) - build $(DTBOS)"
+	@echo "  clean         - remove $(DTBOS)"
 	@echo ""
 	@echo "Env:"
 	@echo "  KERNEL_SRC_DIR=/path/to/linux-src  (required)"
@@ -49,7 +45,8 @@ help:
 	@echo "  $$ export KERNEL_SRC_DIR=\$$HOME/projects/linux"
 	@echo "  $$ $(MAKE)"
 
-$(DTBO): $(OVERLAY_SRC)
+# Generic rule: foo.overlay.dts -> foo.overlay.dtbo
+%.overlay.dtbo: %.overlay.dts
 	@command -v $(CPP) >/dev/null || { echo "ERROR: cpp not found"; exit 1; }
 	@command -v $(DTC) >/dev/null || { echo "ERROR: dtc not found"; exit 1; }
 	@[ -n "$(KDIR)" ] || { echo "ERROR: Set KERNEL_SRC_DIR (needed for dt-bindings includes)"; exit 1; }
@@ -58,5 +55,5 @@ $(DTBO): $(OVERLAY_SRC)
 	@echo "Built overlay: $@"
 
 clean:
-	@rm -f -- "$(DTBO)"
+	rm -f -- $(DTBOS)
 	@echo "Cleaned overlay artifacts."

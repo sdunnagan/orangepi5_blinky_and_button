@@ -1,0 +1,13 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+  compatible = "xunlong,orangepi-5-plus", "rockchip,rk3588";
+
+  fragment@0 {
+    target-path = "/i2c@feaa0000";
+    __overlay__ {
+      status = "okay";
+    };
+  };
+};

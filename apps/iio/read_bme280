@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+D=/sys/bus/iio/devices/iio:device1
+
+temp_mC=$(cat $D/in_temp_input)
+hum_mRH=$(cat $D/in_humidityrelative_input)
+
+temp_C=$(awk "BEGIN {print $temp_mC/1000}")
+temp_F=$(awk "BEGIN {print ($temp_C*9/5)+32}")
+hum=$(awk "BEGIN {print $hum_mRH/1000}")
+
+printf "Temperature: %.1f °F\n" "$temp_F"
+printf "Humidity:    %.1f %%RH\n" "$hum"

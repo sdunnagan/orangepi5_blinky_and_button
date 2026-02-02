@@ -1,4 +1,4 @@
-# Orange Pi 5 Plus GPIO Bring-Up Project
+# Kernel driver development sandbox for the Orange Pi 5 Plus
 
 ## Overview
 
@@ -107,23 +107,51 @@ $ tree
 
 ---
 
-## Merge the Custom Device Tree Overlay
+## Install Applications and Driver
 
 ```sh
 $ TARGET_HOST=<orangepi5plus_host_name>
-$ scp drivers/gpio_button/overlay/gpio_button.overlay.dtbo $USER@$TARGET_HOST:~
-```
-
-On the target:
-```sh
-$ sudo cp -a /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb              /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb.bak.$(date +%F-%H%M%S)
-
-$ sudo fdtoverlay   -i /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb   -o /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb   /home/$USER/gpio_button.overlay.dtbo
+$ make install-remote   TARGET_HOST=$USER@$TARGET_HOST   TARGET_PREFIX=/usr/local   TARGET_SSH_OPTS="-o StrictHostKeyChecking=no"   TARGET_SUDO="sudo -n"
 ```
 
 Verify:
 ```sh
-$ sudo dtc -I dtb -O dts -o - /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb | grep -n "gpio-button" -n
+$ which blinky
+$ which button
+$ modinfo gpio_button
+$ lsmod | grep gpio_button
+```
+
+---
+
+## Merge the Custom Device Tree Overlay
+
+```sh
+$ scp drivers/gpio_button/overlay/gpio_button.overlay.dtbo $USER@$TARGET_HOST:~
+$ scp drivers/gpio_button/overlay/i2c_enable.overlay.dtbo $USER@$TARGET_HOST:~
+```
+
+Merge the custom device tree overlay on the target:
+```sh
+$ sudo cp -a "$BASE" "$BASE.$(date +%F-%H%M%S)"
+$ BASE=/boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb
+$ TMP=/tmp/rk3588-orangepi-5-plus.dtb.$(date +%s)
+$ sudo fdtoverlay \
+  -i "$BASE" \
+  -o "$TMP" \
+  "/home/$USER/gpio_button.overlay.dtbo" \
+  "/home/$USER/i2c_enable.overlay.dtbo"
+$ ls -lh "$TMP"
+$ sudo install -m 0644 "$TMP" "$BASE"
+
+```
+
+Verify:
+```sh
+$ sudo dtc -I dtb -O dts -o - /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb \
+      | grep -n "gpio-button" -n
+$ sudo dtc -I dtb -O dts -o - /boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb \
+      | sed -n '/i2c@feaa0000 {/,/};/p' | head -n 40
 ```
 
 Edit the BLS entry to add:
@@ -150,22 +178,6 @@ $ gpiodetect
 $ sudo gpioset -c gpiochip1 2=1
 $ gpioset -c gpiochip1 1=1
 $ sudo gpioget -c gpiochip3 14
-```
-
----
-
-## Install Applications and Driver
-
-```sh
-$ make install-remote   TARGET_HOST=$USER@$TARGET_HOST   TARGET_PREFIX=/usr/local   TARGET_SSH_OPTS="-o StrictHostKeyChecking=no"   TARGET_SUDO="sudo -n"
-```
-
-Verify:
-```sh
-$ which blinky
-$ which button
-$ modinfo gpio_button
-$ lsmod | grep gpio_button
 ```
 
 ---
