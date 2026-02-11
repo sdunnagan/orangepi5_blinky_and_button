@@ -133,8 +133,8 @@ $ scp drivers/gpio_button/overlay/i2c_enable.overlay.dtbo $USER@$TARGET_HOST:~
 
 Merge the custom device tree overlay on the target:
 ```sh
-$ sudo cp -a "$BASE" "$BASE.$(date +%F-%H%M%S)"
 $ BASE=/boot/dtb/rockchip/rk3588-orangepi-5-plus.dtb
+$ sudo cp -a "$BASE" "$BASE.$(date +%F-%H%M%S)"
 $ TMP=/tmp/rk3588-orangepi-5-plus.dtb.$(date +%s)
 $ sudo fdtoverlay \
   -i "$BASE" \

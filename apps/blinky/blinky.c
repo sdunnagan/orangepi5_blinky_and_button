@@ -184,7 +184,7 @@ static void *blinky_thread(void *arg)
 
 static void signal_handler(int signo)
 {
-    (void)signo;
+    (void) signo;
     stop_flag = 1;
 }
 

@@ -27,6 +27,7 @@ static volatile sig_atomic_t keep_running = 1;
 
 void sig_handler(int sig)
 {
+    (void) sig;
     keep_running = 0;
 }
 
